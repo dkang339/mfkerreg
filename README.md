@@ -70,7 +70,11 @@ where:
 - $w_{i,m}$ are weights computed using the $m$ low-fidelity samples
 - $\alpha$ is optimized to minimize variance
 
-The estimator remains **unbiased** since the low-fidelity correction term has zero expectation. For the detailed derivation of unbiasedness, see [mfkernel.pdf](mfkernel.pdf).
+The estimator remains **unbiased** since the low-fidelity correction term has zero expectation:
+
+$$E[Y^{(1)}|X=x^\ast] = E[Y^{(1)}|X=x^\ast] + \alpha \left( E[Y^{(2)}|X=x^\ast] - E[Y^{(2)}|X=x^\ast] \right)$$
+
+For the detailed derivation, see [mfkernel.pdf](mfkernel.pdf).
 
 ## Results
 
