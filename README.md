@@ -74,8 +74,6 @@ The estimator remains **unbiased** since the low-fidelity correction term has ze
 
 $$E[Y^{(1)}|X=x^\ast] = E[Y^{(1)}|X=x^\ast] + \alpha \left( E[Y^{(2)}|X=x^\ast] - E[Y^{(2)}|X=x^\ast] \right)$$
 
-For the detailed derivation, see [mfkernel.pdf](mfkernel.pdf).
-
 ## Results
 
 ### Example 1: Exponential Function
