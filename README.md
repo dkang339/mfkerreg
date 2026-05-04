@@ -2,6 +2,24 @@
 
 A Python implementation of multifidelity kernel regression that combines high-fidelity and low-fidelity data to achieve variance reduction in predictions. This method applies the Multifidelity Monte Carlo (MFMC) estimator framework to kernel regression problems.
 
+## Table of Contents
+
+- [Motivation](#motivation)
+- [Theory](#theory)
+  - [Standard Kernel Regression](#standard-kernel-regression)
+  - [Limitations of Standard Kernel Regression](#limitations-of-standard-kernel-regression)
+  - [Multifidelity Setup](#multifidelity-setup)
+  - [Multifidelity Kernel Regression](#multifidelity-kernel-regression)
+- [Results](#results)
+  - [Example 1: Exponential Function](#example-1-exponential-function)
+  - [Example 2: Ackley Function (2D)](#example-2-ackley-function-2d)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Project Structure](#project-structure)
+- [Key Features](#key-features)
+- [Dependencies](#dependencies)
+- [References](#references)
+
 ## Motivation
 
 In many scientific and engineering applications, **high-fidelity data is expensive and scarce**. For example:
