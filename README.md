@@ -9,7 +9,7 @@ In many scientific and engineering applications, **high-fidelity data is expensi
 - Physical experiments are costly and time-consuming
 - Detailed measurements require expensive equipment
 
-Standard kernel regression relies solely on high-fidelity data, leading to **high variance in predictions** when data is limited. This package addresses this limitation by incorporating cheaper low-fidelity data to improve prediction robustness.
+Standard kernel regression often relies solely on high-fidelity data, leading to **high variance in predictions** when data is limited. This package addresses this limitation by incorporating cheaper low-fidelity data to improve prediction robustness.
 
 ## Theory
 
