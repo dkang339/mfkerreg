@@ -63,7 +63,7 @@ $$\mathbb{E}[f_1(X)] \approx \frac{1}{n}\sum_{i=1}^{n} f_1(x_i) + \alpha \left( 
 
 Applying this framework to kernel regression:
 
-$$E[Y_1|X=x^*] \approx \sum_{i=1}^{n} w_{i,n}(x^*) y_i^{(1)} + \alpha \left( \sum_{i=1}^{m} w_{i,m}(x^*) y_i^{(2)} - \sum_{i=1}^{n} w_{i,n}(x^*) y_i^{(2)} \right)$$
+$$E[Y_1|X=x^*] \approx \sum_{i=1}^{n} w_{i,n}(x^*) y^{(1)}_i + \alpha \left( \sum_{i=1}^{m} w_{i,m}(x^*) y^{(2)}_i - \sum_{i=1}^{n} w_{i,n}(x^*) y^{(2)}_i \right)$$
 
 where:
 - $w_{i,n}$ are weights computed using the $n$ high-fidelity samples
@@ -81,7 +81,7 @@ The estimator remains **unbiased** since the low-fidelity correction term has ze
 - Low-fidelity: $f_2(x) = 0.9e^{0.5x}$
 - Input distribution: $x \sim \mathcal{U}(0, 5)$
 - Correlation coefficient: 0.97
-- Cost ratio: [1, 0.001]
+- Model evaluation cost (artificial): [1, 0.001]
 
 **High-fidelity and Low-fidelity Functions:**
 
@@ -105,7 +105,7 @@ Multifidelity kernel regression achieves significantly lower MSE and variance, e
 - Low-fidelity: Modified Ackley with different parameters
 - Input distribution: $x \sim \mathcal{U}(-32.768, 32.768)^2$
 - Correlation coefficient: 0.76
-- Cost ratio: [1, 0.001]
+- Model evaluation cost (artificial): [1, 0.001]
 
 **High-fidelity and Low-fidelity Functions:**
 
