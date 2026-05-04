@@ -1,5 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import sys
+from pathlib import Path
+import os
 
 current_dir = Path(__file__).parent
 root_dir = current_dir.parent.resolve()
@@ -7,7 +10,7 @@ sys.path.append(str(root_dir / '..'))
 sys.path.append(str(root_dir / '..' / 'src'))
 print(str(root_dir / '..'))
 
-plt_dir = f'plots/kr'
+plt_dir = f'plots'
 os.makedirs(plt_dir, exist_ok=True)
 
 def f_high(z):

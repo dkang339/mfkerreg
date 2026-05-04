@@ -1,9 +1,8 @@
 '''
-Run MF kernel regeression on a exponential example and compare 
+Run MF kernel regeression on a exponential example and compare
 with SF kernel regression
 '''
 
-import h5py
 from types import SimpleNamespace
 from joblib import parallel_backend, Parallel, delayed
 import numpy as np
@@ -12,15 +11,19 @@ import time
 import sys
 from pathlib import Path
 import os
+
+
 current_dir = Path(__file__).parent # get current directory
 root_dir = current_dir.parent.resolve() # get code directory
 sys.path.append(str(root_dir / '..'))
 sys.path.append(str(root_dir / '..' / 'src'))
 from kr import *
 from mfmc import alloc
+from aux import cleanup_loky
+cleanup_loky()
 
-plt_dir = f'plots/kr'
-npy_dir = f'results/kr'
+plt_dir = f'plots'
+npy_dir = f'results'
 os.makedirs(plt_dir, exist_ok=True)
 os.makedirs(npy_dir, exist_ok=True)
 
@@ -42,7 +45,7 @@ nf = len(vars(f)) # number of fidelities
 r = 50 # number of sample replicates
 n_test = 100 # number of test samples
 w = np.array([1, 0.001]).T # cost per each fidelity (nf,)
-p = [100]
+p = [10, 20, 30, 50, 100]
 mse = np.zeros((len(p),r)) # initialize mean squared error
 mse_mf = np.zeros((len(p),r)) # initialize mean squared error
 alpha = np.zeros(nf,)

@@ -29,7 +29,7 @@ def alloc(sigma, rho, w, p):
     temp = (rho[:-1]**2 - rho[1:]**2)
     const = np.sqrt(w[0]*temp/(w*(1-rho[1]**2))) # (nf,)
     m[0] = p/(w.transpose() @ const);
-    m[1] = m[0]*const[1:];
+    m[1] = m[0]*const[1];
 
     m = np.floor(m)
     m = m.astype(int)

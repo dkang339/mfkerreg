@@ -5,8 +5,8 @@ import os
 
 current_dir = Path(__file__).parent
 root_dir = current_dir.resolve()
-plt_dir = f'{root_dir}/plots/kr'
-npy_dir = f'{root_dir}/results/kr'
+plt_dir = f'{root_dir}/plots'
+npy_dir = f'{root_dir}/results'
 os.makedirs(plt_dir, exist_ok=True)
 
 
@@ -14,7 +14,7 @@ os.makedirs(plt_dir, exist_ok=True)
 # import mfkr
 
 # --- load data ---
-data = np.load(f"{npy_dir}/mfkr_forrest_50.npz", allow_pickle=True)
+data = np.load(f"{npy_dir}/mfkr_forrest.npz", allow_pickle=True)
 Xtest = data["Xtest"]
 ytest = data["ytest"]
 ypred_sf = data["ypred_sf"]

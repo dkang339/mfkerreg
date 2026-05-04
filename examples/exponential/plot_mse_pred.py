@@ -5,13 +5,13 @@ import os
 
 current_dir = Path(__file__).parent
 root_dir = current_dir.resolve()
-plt_dir = f'{root_dir}/plots/kr'
-npy_dir = f'{root_dir}/results/kr'
+plt_dir = f'{root_dir}/plots'
+npy_dir = f'{root_dir}/results'
 os.makedirs(plt_dir, exist_ok=True)
 
 
 # TODO: choose to run mfkr or load saved results
-import mfkr
+# import mfkr
 
 # --- load data ---
 data = np.load(f"{npy_dir}/mfkr_exp.npz", allow_pickle=True)

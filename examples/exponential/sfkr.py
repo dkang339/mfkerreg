@@ -12,6 +12,9 @@ current_dir = Path(__file__).parent # get current directory
 root_dir = current_dir.parent.resolve() # get code directory
 sys.path.append(str(root_dir))
 sys.path.append(str(root_dir / 'src'))
+from aux import cleanup_loky
+cleanup_loky
+
 from kr import *
 plt_dir = f'plots'
 npy_dir = f'results'
