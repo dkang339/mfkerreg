@@ -22,13 +22,13 @@ Kernel regression (also known as Nadaraya-Watson regression) is a non-parametric
 - $Y_1 = f_1(X)$: high-fidelity output variable
 - $\lbrace (x_i, y_i) \rbrace_{i=1}^{n}$: n i.i.d. training samples
 
-For an unseen point $x^*$, kernel regression predicts the output as a **weighted average of training data**:
+For an unseen point $x^\ast$, kernel regression predicts the output as a **weighted average of training data**:
 
-$$E[Y_1|X=x^*] \approx \sum_{i=1}^{n} w_i(x^*) y_i$$
+$$E[Y_1|X=x^\ast] \approx \sum_{i=1}^{n} w_i(x^\ast) y_i$$
 
 where the weights are computed using a kernel function $K_h$:
 
-$$w_i(x^*) = \frac{K_h(x^* - x_i)}{\sum_{j=1}^{n} K_h(x^* - x_j)}$$
+$$w_i(x^\ast) = \frac{K_h(x^\ast - x_i)}{\sum_{j=1}^{n} K_h(x^\ast - x_j)}$$
 
 The kernel function $K_h(\cdot) = \frac{1}{h}K(\frac{\cdot}{h})$ must satisfy:
 1. Non-negativity for all inputs
@@ -63,7 +63,7 @@ $$\mathbb{E}[f_1(X)] \approx \frac{1}{n}\sum_{i=1}^{n} f_1(x_i) + \alpha \left( 
 
 Applying this framework to kernel regression:
 
-$$E[Y_1|X=x^*] \approx \sum_{i=1}^{n} w_{i,n}(x^*) y^{(1)}_i + \alpha \left( \sum_{i=1}^{m} w_{i,m}(x^*) y^{(2)}_i - \sum_{i=1}^{n} w_{i,n}(x^*) y^{(2)}_i \right)$$
+$$E[Y_1|X=x^\ast] \approx \sum_{i=1}^{n} w_{i,n}(x^\ast) y^{(1)}_i + \alpha \left( \sum_{i=1}^{m} w_{i,m}(x^\ast) y^{(2)}_i - \sum_{i=1}^{n} w_{i,n}(x^\ast) y^{(2)}_i \right)$$
 
 where:
 - $w_{i,n}$ are weights computed using the $n$ high-fidelity samples
