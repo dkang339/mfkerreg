@@ -17,29 +17,25 @@ Standard kernel regression relies solely on high-fidelity data, leading to **hig
 
 Kernel regression (also known as Nadaraya-Watson regression) is a non-parametric method that estimates the conditional expectation of a random variable. Given:
 
-- X in R^d: d-dimensional input variable
-- f₁: R^d → R: high-fidelity input-output map
-- Y₁ = f₁(X): high-fidelity output variable
-- {(xᵢ, yᵢ)}ᵢ₌₁ⁿ: n i.i.d. training samples
+- $X \in \mathbb{R}^d$: d-dimensional input variable
+- $f_1: \mathbb{R}^d \to \mathbb{R}$: high-fidelity input-output map
+- $Y_1 = f_1(X)$: high-fidelity output variable
+- $\lbrace (x_i, y_i) \rbrace_{i=1}^{n}$: n i.i.d. training samples
 
-For an unseen point x*, kernel regression predicts the output as a **weighted average of training data**:
+For an unseen point $x^*$, kernel regression predicts the output as a **weighted average of training data**:
 
-```
-E[Y₁|X=x*] ≈ Σᵢ wᵢ(x*) yᵢ
-```
+$$E[Y_1|X=x^*] \approx \sum_{i=1}^{n} w_i(x^*) y_i$$
 
-where the weights are computed using a kernel function Kₕ:
+where the weights are computed using a kernel function $K_h$:
 
-```
-wᵢ(x*) = Kₕ(x* - xᵢ) / Σⱼ Kₕ(x* - xⱼ)
-```
+$$w_i(x^*) = \frac{K_h(x^* - x_i)}{\sum_{j=1}^{n} K_h(x^* - x_j)}$$
 
-The kernel function Kₕ(·) = (1/h)K(·/h) must satisfy:
+The kernel function $K_h(\cdot) = \frac{1}{h}K(\frac{\cdot}{h})$ must satisfy:
 1. Non-negativity for all inputs
 2. Integration to 1
 3. Symmetry
 
-Note that Σᵢ wᵢ = 1, making this a proper weighted average.
+Note that $\sum_{i=1}^{n} w_i = 1$, making this a proper weighted average.
 
 ### Limitations of Standard Kernel Regression
 
@@ -52,10 +48,10 @@ When high-fidelity data is limited:
 
 To address these limitations, we introduce a **multifidelity framework**:
 
-- f₂: R^d → R: low-fidelity input-output map (cheap to evaluate)
-- n: number of high-fidelity samples
-- m (m >> n): number of low-fidelity samples
-- α: optimal weight derived from correlation between fidelities
+- $f_2: \mathbb{R}^d \to \mathbb{R}$: low-fidelity input-output map (cheap to evaluate)
+- $n$: number of high-fidelity samples
+- $m$ $(m \gg n)$: number of low-fidelity samples
+- $\alpha$: optimal weight derived from correlation between fidelities
 
 The key insight is that both kernel regression and the MFMC estimator are **mean estimation methods**, allowing us to combine them naturally.
 
@@ -63,20 +59,16 @@ The key insight is that both kernel regression and the MFMC estimator are **mean
 
 The MFMC estimator for mean estimation is:
 
-```
-E[f₁(X)] ≈ (1/n)Σᵢⁿ f₁(xᵢ) + α((1/m)Σᵢᵐ f₂(xᵢ) - (1/n)Σᵢⁿ f₂(xᵢ))
-```
+$$\mathbb{E}[f_1(X)] \approx \frac{1}{n}\sum_{i=1}^{n} f_1(x_i) + \alpha \left( \frac{1}{m}\sum_{i=1}^{m} f_2(x_i) - \frac{1}{n}\sum_{i=1}^{n} f_2(x_i) \right)$$
 
 Applying this framework to kernel regression:
 
-```
-E[Y₁|X=x*] ≈ Σᵢⁿ wᵢ,ₙ(x*) yᵢ⁽¹⁾ + α(Σᵢᵐ wᵢ,ₘ(x*) yᵢ⁽²⁾ - Σᵢⁿ wᵢ,ₙ(x*) yᵢ⁽²⁾)
-```
+$$E[Y_1|X=x^*] \approx \sum_{i=1}^{n} w_{i,n}(x^*) y_i^{(1)} + \alpha \left( \sum_{i=1}^{m} w_{i,m}(x^*) y_i^{(2)} - \sum_{i=1}^{n} w_{i,n}(x^*) y_i^{(2)} \right)$$
 
 where:
-- wᵢ,ₙ are weights computed using the n high-fidelity samples
-- wᵢ,ₘ are weights computed using the m low-fidelity samples
-- α is optimized to minimize variance
+- $w_{i,n}$ are weights computed using the $n$ high-fidelity samples
+- $w_{i,m}$ are weights computed using the $m$ low-fidelity samples
+- $\alpha$ is optimized to minimize variance
 
 The estimator remains **unbiased** since the low-fidelity correction term has zero expectation. For the detailed derivation of unbiasedness, see [mfkernel.pdf](mfkernel.pdf).
 
@@ -85,9 +77,9 @@ The estimator remains **unbiased** since the low-fidelity correction term has ze
 ### Example 1: Exponential Function
 
 **Setup:**
-- High-fidelity: f₁(x) = eˣ
-- Low-fidelity: f₂(x) = 0.9e^(0.5x)
-- Input distribution: x ~ U(0, 5)
+- High-fidelity: $f_1(x) = e^x$
+- Low-fidelity: $f_2(x) = 0.9e^{0.5x}$
+- Input distribution: $x \sim \mathcal{U}(0, 5)$
 - Correlation coefficient: 0.97
 - Cost ratio: [1, 0.001]
 
@@ -101,17 +93,17 @@ Multifidelity kernel regression achieves significantly lower MSE and variance, e
 
 ![Exponential MSE](examples/exponential/plots/mfkr_mse.png)
 
-| Computational Budget | High-fidelity Samples (n) | Low-fidelity Samples (m) |
-|---------------------|---------------------------|--------------------------|
-| 10                  | 8                         | 1,126                    |
-| 100                 | 88                        | 11,263                   |
+| Computational Budget | High-fidelity Samples ($n$) | Low-fidelity Samples ($m$) |
+|---------------------|----------------------------|---------------------------|
+| 10                  | 8                          | 1,126                     |
+| 100                 | 88                         | 11,263                    |
 
 ### Example 2: Ackley Function (2D)
 
 **Setup:**
 - High-fidelity: Standard Ackley function
 - Low-fidelity: Modified Ackley with different parameters
-- Input distribution: x ~ U(-32.768, 32.768)²
+- Input distribution: $x \sim \mathcal{U}(-32.768, 32.768)^2$
 - Correlation coefficient: 0.76
 - Cost ratio: [1, 0.001]
 
