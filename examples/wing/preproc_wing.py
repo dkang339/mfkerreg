@@ -8,8 +8,10 @@ writes field datasets needed for field prediction.
 from __future__ import annotations
 
 import argparse
+import shutil
 from collections import defaultdict
 from pathlib import Path
+from zipfile import BadZipFile, ZipFile
 
 import h5py
 import numpy as np
@@ -24,6 +26,86 @@ DATASETS = {
     "lowfi_grid": "crm_coarse-grid_4DV_N1000_slim.h5",
     "lowfi_rib": "crm_coarse-ribs_4DV_N1000_slim.h5",
 }
+
+
+def find_archive(data_dir: Path, archive_path: Path | None = None) -> Path | None:
+    """Return the first available Springer archive path."""
+    if archive_path is not None:
+        return archive_path if archive_path.exists() else None
+
+    candidates = (
+        ROOT_DIR / "158_2022_3274_MOESM1_ESM.zip",
+        data_dir / "158_2022_3274_MOESM1_ESM.zip",
+    )
+    return next((path for path in candidates if path.exists()), None)
+
+
+def extract_missing_raw_datasets(
+    data_dir: Path,
+    raw_filenames: list[str],
+    archive_path: Path | None = None,
+    _visited_archives: set[Path] | None = None,
+) -> None:
+    """Extract missing raw wing datasets from the Springer archive when present."""
+    missing = [filename for filename in raw_filenames if not (data_dir / filename).exists()]
+    if not missing:
+        return
+
+    archive = find_archive(data_dir, archive_path)
+    if archive is None:
+        return
+
+    print(f"Extracting missing raw wing datasets from {archive}")
+    visited_archives = _visited_archives or set()
+    archive = archive.resolve()
+    if archive in visited_archives:
+        return
+    visited_archives.add(archive)
+
+    try:
+        with ZipFile(archive) as source:
+            members_by_name = {Path(member).name: member for member in source.namelist()}
+            unavailable = [filename for filename in missing if filename not in members_by_name]
+            if unavailable:
+                nested_archives = [
+                    member for member in source.namelist() if member.lower().endswith(".zip")
+                ]
+                for nested_member in nested_archives:
+                    nested_path = data_dir / Path(nested_member).name
+                    if not nested_path.exists():
+                        print(f"Extracting nested archive {nested_member} to {nested_path}")
+                        with source.open(nested_member) as src, nested_path.open("wb") as dst:
+                            shutil.copyfileobj(src, dst)
+                    extract_missing_raw_datasets(
+                        data_dir,
+                        raw_filenames,
+                        nested_path,
+                        visited_archives,
+                    )
+
+                missing = [
+                    filename
+                    for filename in raw_filenames
+                    if not (data_dir / filename).exists()
+                ]
+                if not missing:
+                    return
+
+                raise FileNotFoundError(
+                    "Archive does not contain required wing dataset(s): "
+                    + ", ".join(missing)
+                )
+
+            for filename in missing:
+                target = data_dir / filename
+                target.parent.mkdir(parents=True, exist_ok=True)
+                with source.open(members_by_name[filename]) as src, target.open("wb") as dst:
+                    shutil.copyfileobj(src, dst)
+                print(f"Extracted {target}")
+    except BadZipFile as exc:
+        raise BadZipFile(
+            f"Could not read {archive}. The download may be incomplete or corrupt."
+        ) from exc
 
 
 def primary_wing_mesh(raw_path: Path) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -101,6 +183,12 @@ def main() -> None:
         "--data-dir", type=Path, default=DEFAULT_DATA_DIR, help="Raw/output data directory."
     )
     parser.add_argument(
+        "--archive",
+        type=Path,
+        default=None,
+        help="Optional path to the downloaded Springer wing data zip archive.",
+    )
+    parser.add_argument(
         "--dataset",
         choices=tuple(DATASETS) + ("all",),
         default="all",
@@ -111,10 +199,15 @@ def main() -> None:
 
     args.data_dir.mkdir(parents=True, exist_ok=True)
     names = DATASETS if args.dataset == "all" else {args.dataset: DATASETS[args.dataset]}
+    extract_missing_raw_datasets(args.data_dir, list(names.values()), args.archive)
     for output_stem, raw_filename in names.items():
         raw_path = args.data_dir / raw_filename
         if not raw_path.exists():
-            raise FileNotFoundError(f"Raw wing dataset not found: {raw_path}")
+            raise FileNotFoundError(
+                f"Raw wing dataset not found: {raw_path}. "
+                "Download 158_2022_3274_MOESM1_ESM.zip and place it in the "
+                "repository root or data/wing, then rerun this script."
+            )
         preprocess_dataset(raw_path, args.data_dir / f"{output_stem}_field.h5", args.overwrite)
 
 

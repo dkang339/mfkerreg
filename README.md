@@ -14,6 +14,7 @@ A Python implementation of multifidelity kernel regression that combines high-fi
   - [Example 1: Exponential Function](#example-1-exponential-function)
   - [Example 2: Ackley Function (2D)](#example-2-ackley-function-2d)
 - [Installation](#installation)
+- [Prerequisites](#prerequisites)
 - [Usage](#usage)
 - [Project Structure](#project-structure)
 - [Key Features](#key-features)
@@ -160,6 +161,28 @@ uv sync
 pip install -e .
 ```
 
+## Prerequisites
+
+Download data for the wing example.
+
+Download the wing structural stress data from [here](https://link.springer.com/article/10.1007/s00158-022-03274-1#Sec23) (3.9 GB), or by running:
+
+```bash
+wget https://static-content.springer.com/esm/art%3A10.1007%2Fs00158-022-03274-1/MediaObjects/158_2022_3274_MOESM1_ESM.zip
+```
+
+Place the following data into `data/wing`:
+
+```text
+/data/crm_baseline_4DV_N1000_slim.h5
+/data/crm_coarse-grid_4DV_N1000_slim.h5
+/data/crm_coarse-ribs_4DV_N1000_slim.h5
+```
+
+Preprocess the data.
+
+For each example, run the script beginning with `preproc_` to generate or format the data.
+
 ## Usage
 
 ```bash
@@ -178,7 +201,7 @@ mfkerreg/
 │   ├── kr.py          # Kernel regression implementation
 │   ├── kernels.py     # Kernel functions (Matern, RBF, etc.)
 │   ├── mfmc.py        # MFMC sample allocation
-│   └── aux.py         # Auxiliary functions
+│   └── utils.py       # Utility functions
 ├── examples/
 │   ├── exponential/   # 1D exponential function example
 │   └── forrester/     # 2D Ackley function example

@@ -144,6 +144,9 @@ def main() -> None:
     )
     if not 0 <= plot_index < args.n_test:
         raise ValueError("--plot-test-index must refer to an item in the test set.")
+    plot_title = "Comparison of von Mises stress distributions"
+    if args.plot_test_index < 0:
+        plot_title += " (Test sample with the worst MF relative error)"
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
     low_label = f"lowfi_{args.low_fidelity}"
@@ -156,7 +159,7 @@ def main() -> None:
         sf_prediction[plot_index],
         prediction[plot_index],
         plot_path,
-        "Comparison of von Mises stress distributions",
+        plot_title,
         args.n_high,
         args.n_low,
         args.gap,
