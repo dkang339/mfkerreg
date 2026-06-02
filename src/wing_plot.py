@@ -64,19 +64,24 @@ def plot_stress_fields(
 ) -> None:
     """Save single- and multifidelity stress predictions beside their errors."""
     faces = _gapped_faces(_display_mesh(points), elements, gap)
+    truth_kpsi = truth / 1000.0
+    sf_prediction_kpsi = sf_prediction / 1000.0
+    mf_prediction_kpsi = mf_prediction / 1000.0
     sf_error = np.abs(sf_prediction - truth)
     mf_error = np.abs(mf_prediction - truth)
+    sf_error_kpsi = sf_error / 1000.0
+    mf_error_kpsi = mf_error / 1000.0
     stress_norm = Normalize(
-        vmin=min(truth.min(), sf_prediction.min(), mf_prediction.min()),
-        vmax=max(truth.max(), sf_prediction.max(), mf_prediction.max()),
+        vmin=min(truth_kpsi.min(), sf_prediction_kpsi.min(), mf_prediction_kpsi.min()),
+        vmax=max(truth_kpsi.max(), sf_prediction_kpsi.max(), mf_prediction_kpsi.max()),
     )
-    error_norm = Normalize(vmin=0.0, vmax=max(sf_error.max(), mf_error.max()))
+    error_norm = Normalize(vmin=0.0, vmax=max(sf_error_kpsi.max(), mf_error_kpsi.max()))
     fig, axes = plt.subplots(2, 2, figsize=(14, 8), subplot_kw={"projection": "3d"})
     fig.subplots_adjust(left=0.01, right=0.99, bottom=0.09, top=0.95, wspace=-0.40, hspace=-0.16)
-    _add_surface(axes[0, 0], faces, sf_prediction, "viridis", stress_norm)
-    _add_surface(axes[1, 0], faces, mf_prediction, "viridis", stress_norm)
-    _add_surface(axes[0, 1], faces, sf_error, "magma", error_norm)
-    _add_surface(axes[1, 1], faces, mf_error, "magma", error_norm)
+    _add_surface(axes[0, 0], faces, sf_prediction_kpsi, "viridis", stress_norm)
+    _add_surface(axes[1, 0], faces, mf_prediction_kpsi, "viridis", stress_norm)
+    _add_surface(axes[0, 1], faces, sf_error_kpsi, "magma", error_norm)
+    _add_surface(axes[1, 1], faces, mf_error_kpsi, "magma", error_norm)
     axes[0, 0].set_title(f"Single fidelity prediction (N_HF = {n_high})", y=0.84, pad=20)
     axes[1, 0].set_title(
         f"Multifidelity prediction (N_HF = {n_high}, N_LF = {n_low})", y=0.84, pad=20
@@ -99,13 +104,13 @@ def plot_stress_fields(
         ScalarMappable(norm=stress_norm, cmap="viridis"),
         cax=stress_cax,
         orientation="horizontal",
-        label="von Mises stress (psi)",
+        label="von Mises stress (kpsi)",
     )
     fig.colorbar(
         ScalarMappable(norm=error_norm, cmap="magma"),
         cax=error_cax,
         orientation="horizontal",
-        label="absolute error (psi)",
+        label="absolute error (kpsi)",
     )
     fig.suptitle(title, y=0.99, fontsize=18)
     fig.savefig(output_path, dpi=250, bbox_inches="tight", pad_inches=0.05)

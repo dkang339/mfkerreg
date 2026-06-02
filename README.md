@@ -13,6 +13,7 @@ A Python implementation of multifidelity kernel regression that combines high-fi
 - [Results](#results)
   - [Example 1: Exponential Function](#example-1-exponential-function)
   - [Example 2: Ackley Function (2D)](#example-2-ackley-function-2d)
+  - [Example 3: NASA CRM Wing Stress Field](#example-3-nasa-crm-wing-stress-field)
 - [Installation](#installation)
 - [Prerequisites](#prerequisites)
 - [Usage](#usage)
@@ -147,6 +148,40 @@ Multifidelity kernel regression consistently outperforms single-fidelity kernel 
 
 ![Ackley MSE](examples/forrester/plots/mfkr_mse.png)
 
+### Example 3: NASA CRM Wing Stress Field
+
+**Setup:**
+- Input: NASA Common Research Model (CRM) wing design parameters
+- High-fidelity output: CRM wing von Mises stress field
+- Low-fidelity output: coarse-grid wing stress field
+- Number of high-fidelity training samples: 100
+- Number of low-fidelity training samples: 300
+- Number of test samples: 100
+
+In this example, the multifidelity kernel regression predicts POD coefficients
+for unseen input points, then reconstructs the predicted stress field with the
+high-fidelity POD basis.
+To train the model, we use the MAROM framework from Perron et al. The method applies POD separately
+to the high- and low-fidelity datasets and retains the same number of POD modes. It then
+uses manifold alignment to map the low-fidelity POD coefficients into the high-fidelity
+POD coefficient space.
+
+**Stress Prediction and Pointwise Absolute Error:**
+
+![CRM wing stress field comparison](examples/wing/results/mfkr_field_lowfi_grid.png)
+
+The absolute error distribution shows that the multifidelity prediction has
+lower error than the single-fidelity prediction across the wing field.
+
+For the coarse-grid low-fidelity data, multifidelity regression reduced the
+mean relative L2 error from 4.04% with single-fidelity kernel regression to
+2.34%. The worst-case relative L2 error also dropped from 19.55% to 8.80%.
+
+| Method | Training Samples | Mean Relative L2 Error | Max Relative L2 Error |
+|--------|------------------|------------------------|-----------------------|
+| Single-fidelity KR | N_HF=100 | 4.04% | 19.55% |
+| Multifidelity KR | N_HF=100, N_LF=300 | 2.34% | 8.80% |
+
 ## Installation
 
 ```bash
@@ -191,6 +226,10 @@ python examples/exponential/mfkr.py
 
 # Run Ackley function example
 python examples/forrester/mfkr.py
+
+# Run CRM wing stress-field example
+python examples/wing/preproc_wing.py
+python examples/wing/mfkr_field.py --low-fidelity grid
 ```
 
 ## Project Structure
@@ -204,7 +243,8 @@ mfkerreg/
 │   └── utils.py       # Utility functions
 ├── examples/
 │   ├── exponential/   # 1D exponential function example
-│   └── forrester/     # 2D Ackley function example
+│   ├── forrester/     # 2D Ackley function example
+│   └── wing/          # CRM wing stress-field example
 ├── data/              # Precomputed statistics
 └── mfkernel.pdf       # Theory document
 ```
@@ -230,3 +270,5 @@ mfkerreg/
 - Peherstorfer, B., Willcox, K., & Gunzburger, M. (2016). Optimal model management for multifidelity Monte Carlo estimation. *SIAM Journal on Scientific Computing*.
 - Nadaraya, E. A. (1964). On estimating regression. *Theory of Probability & Its Applications*.
 - Watson, G. S. (1964). Smooth regression analysis. *Sankhyā: The Indian Journal of Statistics*.
+- NASA Common Research Model: https://commonresearchmodel.larc.nasa.gov/
+- Perron, C., Sarojini, D., Rajaram, D., Corman, J., & Mavris, D. N. (2022). Manifold alignment-based multi-fidelity reduced-order modeling applied to structural analysis. *Structural and Multidisciplinary Optimization*, 65, 236. https://doi.org/10.1007/s00158-022-03274-1
