@@ -12,8 +12,7 @@ A Python implementation of multifidelity kernel regression that combines high-fi
   - [Multifidelity Kernel Regression](#multifidelity-kernel-regression)
 - [Results](#results)
   - [Example 1: Exponential Function](#example-1-exponential-function)
-  - [Example 2: Ackley Function (2D)](#example-2-ackley-function-2d)
-  - [Example 3: NASA CRM Wing Stress Field](#example-3-nasa-crm-wing-stress-field)
+  - [Example 2: NASA CRM Wing Stress Field](#example-2-nasa-crm-wing-stress-field)
 - [Installation](#installation)
 - [Prerequisites](#prerequisites)
 - [Usage](#usage)
@@ -120,35 +119,7 @@ Multifidelity kernel regression achieves significantly lower MSE and variance, e
 | 10                  | 8                          | 1,126                     |
 | 100                 | 88                         | 11,263                    |
 
-### Example 2: Ackley Function (2D)
-
-**Setup:**
-- High-fidelity: Standard Ackley function
-- Low-fidelity: Modified Ackley with different parameters
-- Input distribution: $x \sim \mathcal{U}(-32.768, 32.768)^2$
-- Correlation coefficient: 0.76
-- Model evaluation cost (artificial): [1, 0.001]
-
-**High-fidelity and Low-fidelity Functions:**
-
-![Ackley Functions](examples/forrester/plots/functions.png)
-
-**Prediction Comparison (Budget = 50):**
-
-| Method | Samples | MSE |
-|--------|---------|-----|
-| Single-fidelity KR | n=50 | 4.21 |
-| Multifidelity KR | n=48, m=1,804 | 1.77 |
-
-![Ackley Prediction](examples/forrester/plots/mfkr_pred.png)
-
-**Mean Squared Error Comparison:**
-
-Multifidelity kernel regression consistently outperforms single-fidelity kernel regression across all computational budgets. The variance reduction is more significant in the low-budget regime, where high-fidelity data is most scarce.
-
-![Ackley MSE](examples/forrester/plots/mfkr_mse.png)
-
-### Example 3: NASA CRM Wing Stress Field
+### Example 2: NASA CRM Wing Stress Field
 
 **Setup:**
 - Input: NASA Common Research Model (CRM) wing design parameters
@@ -224,9 +195,6 @@ For each example, run the script beginning with `preproc_` to generate or format
 # Run exponential function example
 python examples/exponential/mfkr.py
 
-# Run Ackley function example
-python examples/forrester/mfkr.py
-
 # Run CRM wing stress-field example
 python examples/wing/preproc_wing.py
 python examples/wing/mfkr_field.py --low-fidelity grid
@@ -243,7 +211,6 @@ mfkerreg/
 │   └── utils.py       # Utility functions
 ├── examples/
 │   ├── exponential/   # 1D exponential function example
-│   ├── forrester/     # 2D Ackley function example
 │   └── wing/          # CRM wing stress-field example
 ├── data/              # Precomputed statistics
 └── mfkernel.pdf       # Theory document
