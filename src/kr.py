@@ -83,25 +83,18 @@ def loocv_err(sigma,Z,Y,kernel=ardmatern32):
 
     '''
 
+    K = kernel(Z,Z,sigma)
+    if K.ndim != 2:
+        raise ValueError("loocv_err expects a kernel matrix with shape (N, N).")
+
+    Kdiag = np.diag(K)
+    numer = K @ Y - Kdiag[:,None] * Y
+    denom = np.sum(K,axis=1) - Kdiag
+
     N = len(Z) # number of training samples
-    err = 0.0
-
-    for i in range(N):
-        Ztest = Z[i,:] # test model at i-th sample (d,)
-        Ztest = Ztest[np.newaxis,:] # (1,d)
-
-        Ztrain = np.delete(Z,i,axis=0) # delete i-th sample from training set
-        Ytrain = np.delete(Y,i,axis=0)
-
-        # print('Z:', Z.shape)
-        # print('Y:', Y.shape)
-        # print('Ztrain:', Ztrain.shape)
-        # print('Ytrain:', Ytrain.shape)
-        Yhat = eval_kr(Ztest,Ztrain,Ytrain,sigma,kernel) # (1,r)
-
-        err += np.sum((Y[i,:] - Yhat)**2) # (scalar)
-
-    err /= N # average error (scalar)
+    eps = N * np.finfo(float).eps
+    Yhat = numer / (denom[:,None] + eps)
+    err = np.mean(np.sum((Y - Yhat)**2,axis=1))
 
     return err
 
