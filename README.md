@@ -1,23 +1,19 @@
 # Multifidelity Kernel Regression
 
-A Python implementation of multifidelity kernel regression that combines high-fidelity and low-fidelity data to achieve variance reduction in predictions. This method applies the Multifidelity Monte Carlo (MFMC) estimator framework to kernel regression problems.
+A Python implementation of multifidelity kernel regression that combines high-fidelity and low-fidelity data to seek lower prediction error. This method adapts the nested correction used by Multifidelity Monte Carlo (MFMC) to kernel regression.
 
 ## Table of Contents
 
 - [Motivation](#motivation)
 - [Theory](#theory)
-  - [Standard Kernel Regression](#standard-kernel-regression)
-  - [Limitations of Standard Kernel Regression](#limitations-of-standard-kernel-regression)
-  - [Multifidelity Setup](#multifidelity-setup)
-  - [Multifidelity Kernel Regression](#multifidelity-kernel-regression)
+  - [Population-Optimal Alpha](#population-optimal-alpha)
+  - [Comparison with the Same Single-Fidelity Estimator](#comparison-with-the-same-single-fidelity-estimator)
 - [Results](#results)
-  - [Example 1: Exponential Function](#example-1-exponential-function)
-  - [Example 2: NASA CRM Wing Stress Field](#example-2-nasa-crm-wing-stress-field)
+  - [Exoplanet Climate Prediction](#exoplanet-climate-prediction)
 - [Installation](#installation)
 - [Prerequisites](#prerequisites)
 - [Usage](#usage)
 - [Project Structure](#project-structure)
-- [Key Features](#key-features)
 - [Dependencies](#dependencies)
 - [References](#references)
 
@@ -28,136 +24,128 @@ In many scientific and engineering applications, **high-fidelity data is expensi
 - Physical experiments are costly and time-consuming
 - Detailed measurements require expensive equipment
 
-Standard kernel regression often relies solely on high-fidelity data, leading to **high variance in predictions** when data is limited. This package addresses this limitation by incorporating cheaper low-fidelity data to improve prediction robustness.
+Standard kernel regression can have high prediction variance when high-fidelity
+data is limited. This package incorporates cheaper low-fidelity data to reduce
+that error when the correction is informative enough.
 
 ## Theory
 
-### Standard Kernel Regression
+At a query input $z$, let $f_H(z)$ be the high-fidelity target value.
+Let $\widehat\mu_{H,n}(z)$ be the single-fidelity kernel prediction from $n$
+high-fidelity observations. Let $\widehat\mu_{L,n}(z)$ and
+$\widehat\mu_{L,m}(z)$ be low-fidelity kernel predictions from the first $n$
+and all $m\ge n$ low-fidelity observations, respectively. The first $n$
+inputs are paired across fidelities. For a coefficient $\alpha$, the
+multifidelity prediction is
 
-Kernel regression (also known as Nadaraya-Watson regression) is a non-parametric method that estimates the conditional expectation of a random variable. Given:
+$$
+\widehat\mu_{H,n}(z)
++\alpha\bigl(\widehat\mu_{L,m}(z)-\widehat\mu_{L,n}(z)\bigr).
+$$
 
-- $X \in \mathbb{R}^d$: d-dimensional input variable
-- $f_1: \mathbb{R}^d \to \mathbb{R}$: high-fidelity input-output map
-- $Y_1 = f_1(X)$: high-fidelity output variable
-- $\lbrace (x_i, y_i) \rbrace_{i=1}^{n}$: n i.i.d. training samples
+### Population-Optimal Alpha
 
-For an unseen point $x^\ast$, kernel regression predicts the output as a **weighted average of training data**:
+For fixed $n$, $m$, and $z$, define the population mean squared error (MSE)
+by averaging squared prediction error over random training sets:
 
-$$E[Y_1|X=x^\ast] \approx \sum_{i=1}^{n} w_i(x^\ast) y_i$$
+$$
+R(\alpha;z)=\mathbb E\left[
+\left(\widehat\mu_{H,n}(z)-f_H(z)
++\alpha\bigl(\widehat\mu_{L,m}(z)-\widehat\mu_{L,n}(z)\bigr)\right)^2
+\right].
+$$
 
-where the weights are computed using a kernel function $K_h$:
+Assume that the high-fidelity prediction error and the low-fidelity
+correction have finite second moments. Expanding the square gives
 
-$$w_i(x^\ast) = \frac{K_h(x^\ast - x_i)}{\sum_{j=1}^{n} K_h(x^\ast - x_j)}$$
+$$
+\begin{aligned}
+R(\alpha;z)
+&=\mathbb E[(\widehat\mu_{H,n}(z)-f_H(z))^2]\\
+&\quad+2\alpha\,\mathbb E[(\widehat\mu_{H,n}(z)-f_H(z))
+(\widehat\mu_{L,m}(z)-\widehat\mu_{L,n}(z))]\\
+&\quad+\alpha^2\mathbb E[(\widehat\mu_{L,m}(z)
+-\widehat\mu_{L,n}(z))^2].
+\end{aligned}
+$$
 
-The kernel function $K_h(\cdot) = \frac{1}{h}K(\frac{\cdot}{h})$ must satisfy:
-1. Non-negativity for all inputs
-2. Integration to 1
-3. Symmetry
+If the final expectation is positive, differentiating with respect to
+$\alpha$ and setting the derivative to zero gives
 
-Note that $\sum_{i=1}^{n} w_i = 1$, making this a proper weighted average.
+$$
+\boxed{
+\alpha_{\mathrm{MSE}}^*(n,m;z)
+=-\frac{
+\mathbb E[(\widehat\mu_{H,n}(z)-f_H(z))
+(\widehat\mu_{L,m}(z)-\widehat\mu_{L,n}(z))]
+}{
+\mathbb E[(\widehat\mu_{L,m}(z)-\widehat\mu_{L,n}(z))^2]
+}.}
+$$
 
-### Limitations of Standard Kernel Regression
+The second derivative is twice the positive denominator, so this
+coefficient uniquely minimizes the population MSE. The expectations in the
+formula are population quantities and generally must be estimated from data.
 
-When high-fidelity data is limited:
-- Predictions suffer from **high variance**
-- The estimator is sensitive to the particular training samples drawn
-- Accuracy degrades significantly in low-budget regimes
+### Comparison with the Same Single-Fidelity Estimator
 
-### Multifidelity Setup
+The single-fidelity comparator is $\widehat\mu_{H,n}(z)$ with the same $n$
+high-fidelity observations. Its MSE is $R(0;z)$. When the low-fidelity
+correction has a positive second moment, substituting the population-optimal
+coefficient gives
 
-To address these limitations, we introduce a **multifidelity framework**:
+$$
+\begin{aligned}
+R(\alpha_{\mathrm{MSE}}^*;z)
+&=R(0;z)\\
+&\quad-\frac{
+\mathbb E[(\widehat\mu_{H,n}(z)-f_H(z))
+(\widehat\mu_{L,m}(z)-\widehat\mu_{L,n}(z))]^2
+}{
+\mathbb E[(\widehat\mu_{L,m}(z)-\widehat\mu_{L,n}(z))^2]
+}\\
+&\le R(0;z).
+\end{aligned}
+$$
 
-- $f_2: \mathbb{R}^d \to \mathbb{R}$: low-fidelity input-output map (cheap to evaluate)
-- $n$: number of high-fidelity samples
-- $m$ $(m \gg n)$: number of low-fidelity samples
-- $\alpha$: optimal weight derived from correlation between fidelities
-
-The key insight is that both kernel regression and the MFMC estimator are **mean estimation methods**, allowing us to combine them naturally.
-
-### Multifidelity Kernel Regression
-
-The MFMC estimator for mean estimation is:
-
-$$\mathbb{E}[f_1(X)] \approx \frac{1}{n}\sum_{i=1}^{n} f_1(x_i) + \alpha \left( \frac{1}{m}\sum_{i=1}^{m} f_2(x_i) - \frac{1}{n}\sum_{i=1}^{n} f_2(x_i) \right)$$
-
-Applying this framework to kernel regression:
-
-$$E[Y_1|X=x^\ast] \approx \sum_{i=1}^{n} w_{i,n}(x^\ast) y^{(1)}_i + \alpha \left( \sum_{i=1}^{m} w_{i,m}(x^\ast) y^{(2)}_i - \sum_{i=1}^{n} w_{i,n}(x^\ast) y^{(2)}_i \right)$$
-
-where:
-- $w_{i,n}$ are weights computed using the $n$ high-fidelity samples
-- $w_{i,m}$ are weights computed using the $m$ low-fidelity samples
-- $\alpha$ is optimized to minimize variance
-
-The estimator remains **unbiased** since the low-fidelity correction term has zero expectation:
-
-$$E[Y^{(1)}|X=x^\ast] = E[Y^{(1)}|X=x^\ast] + \alpha \left( E[Y^{(2)}|X=x^\ast] - E[Y^{(2)}|X=x^\ast] \right)$$
+The subtracted fraction is nonnegative, so the population-optimal
+multifidelity predictor has no greater expected MSE than this
+single-fidelity predictor. If the low-fidelity correction has zero second
+moment, the correction is zero almost surely and both predictors have the
+same MSE. This statement concerns expected squared error over random
+training sets and assumes the population-optimal coefficient is used.
 
 ## Results
 
-### Example 1: Exponential Function
+### Exoplanet Climate Prediction
 
-**Setup:**
-- High-fidelity: $f_1(x) = e^x$
-- Low-fidelity: $f_2(x) = 0.9e^{0.5x}$
-- Input distribution: $x \sim \mathcal{U}(0, 5)$
-- Correlation coefficient: 0.97
-- Model evaluation cost (artificial): [1, 0.001]
+#### Climate field predictions
 
-**High-fidelity and Low-fidelity Functions:**
+![Poster comparison of high-fidelity truth, single-fidelity predictions, multifidelity predictions, and absolute errors for four climate fields](examples/exoplanet/results/poster_figures/hf150_shared_lf_unseen_field_prediction.png)
 
-![Exponential Functions](examples/exponential/plots/functions.png)
+For each climate field, the single-fidelity and multifidelity predictors use
+the same 150 high-fidelity simulations. The multifidelity predictor also uses
+1,000 low-fidelity simulations. In the selected cases shown above, the
+multifidelity predictions more closely reproduce the high-fidelity truth
+for surface temperature, absorbed stellar radiation, atmospheric temperature,
+and specific humidity.
 
-**Mean Squared Error Comparison:**
+#### Error reduction across training sets
 
-Multifidelity kernel regression achieves significantly lower MSE and variance, especially in low-budget regimes.
+![Poster MSE curves for four climate fields with 1,000 low-fidelity samples and varying high-fidelity sample counts](examples/exoplanet/results/poster_figures/fixed_m1000_field_learning_curves.png)
 
-![Exponential MSE](examples/exponential/plots/mfkr_mse.png)
-
-| Computational Budget | High-fidelity Samples ($n$) | Low-fidelity Samples ($m$) |
-|---------------------|----------------------------|---------------------------|
-| 10                  | 8                          | 1,126                     |
-| 100                 | 88                         | 11,263                    |
-
-### Example 2: NASA CRM Wing Stress Field
-
-**Setup:**
-- Input: NASA Common Research Model (CRM) wing design parameters
-- High-fidelity output: CRM wing von Mises stress field
-- Low-fidelity output: coarse-grid wing stress field
-- Number of high-fidelity training samples: 100
-- Number of low-fidelity training samples: 300
-- Number of test samples: 100
-
-In this example, the multifidelity kernel regression predicts POD coefficients
-for unseen input points, then reconstructs the predicted stress field with the
-high-fidelity POD basis.
-To train the model, we use the MAROM framework from Perron et al. The method applies POD separately
-to the high- and low-fidelity datasets and retains the same number of POD modes. It then
-uses manifold alignment to map the low-fidelity POD coefficients into the high-fidelity
-POD coefficient space.
-
-**Stress Prediction and Pointwise Absolute Error:**
-
-![CRM wing stress field comparison](examples/wing/results/mfkr_field_lowfi_grid.png)
-
-The absolute error distribution shows that the multifidelity prediction has
-lower error than the single-fidelity prediction across the wing field.
-
-For the coarse-grid low-fidelity data, multifidelity regression reduced the
-mean relative L2 error from 4.04% with single-fidelity kernel regression to
-2.34%. The worst-case relative L2 error also dropped from 19.55% to 8.80%.
-
-| Method | Training Samples | Mean Relative L2 Error | Max Relative L2 Error |
-|--------|------------------|------------------------|-----------------------|
-| Single-fidelity KR | N_HF=100 | 4.04% | 19.55% |
-| Multifidelity KR | N_HF=100, N_LF=300 | 2.34% | 8.80% |
+The models were trained 100 times with different realizations of the training
+data. With 1,000 low-fidelity simulations and up to 175 high-fidelity
+simulations, multifidelity kernel regression achieved lower mean squared
+error than single-fidelity kernel regression across all four climate fields.
+The gray bars show the percentage reduction in mean squared error at each
+high-fidelity sample count.
 
 ## Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/mfkerreg.git
+git clone https://github.com/dkang339/mfkerreg.git
 cd mfkerreg
 
 # Install with uv (recommended)
@@ -211,18 +199,14 @@ mfkerreg/
 │   └── utils.py       # Utility functions
 ├── examples/
 │   ├── exponential/   # 1D exponential function example
-│   └── wing/          # CRM wing stress-field example
+│   ├── wing/          # CRM wing stress-field example
+│   └── exoplanet/     # UM and ExoPlaSim field experiments
+├── optimal_mfkr_experiment/ # Influence-based allocation experiments
+├── docs/              # Proofs and archived README
 ├── data/              # Precomputed statistics
+├── README.md          # Current repository overview
 └── mfkernel.pdf       # Theory document
 ```
-
-## Key Features
-
-- **Variance Reduction**: Leverages cheap low-fidelity data to reduce prediction variance
-- **Optimal Sample Allocation**: Automatically determines the optimal number of samples at each fidelity level
-- **Unbiased Estimator**: Maintains unbiasedness while reducing variance
-- **Kernels**: Supports ARD Matern 3/2 and Exponential kernel functions
-- **Parallel Computation**: Uses joblib for parallel cross-validation
 
 ## Dependencies
 
